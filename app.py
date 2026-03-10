@@ -129,7 +129,7 @@ h1, h2, h3 {
 }
 .top-bar-title .accent { color: #6c8eff; }
 .top-bar-badge {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Mulish', sans-serif;
     font-size: 0.60rem;
     background: #111422;
     border: 1px solid #2a3060;
@@ -140,7 +140,7 @@ h1, h2, h3 {
     text-transform: uppercase;
 }
 .page-indicator {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Mulish', sans-serif;
     font-size: 0.62rem;
     color: #5a6090;
     text-align: right;
@@ -179,7 +179,7 @@ h1, h2, h3 {
 
 /* ── Section labels ──────────────────────────────────────────────── */
 .section-label {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Mulish', sans-serif;
     font-size: 0.72rem !important;
     letter-spacing: 0.22em;
     color: #6c8eff;
@@ -203,7 +203,7 @@ h1, h2, h3 {
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    font-family: 'Space Mono', monospace;
+    font-family: 'Mulish', sans-serif;
     font-size: 0.78rem;
     letter-spacing: 0.08em;
     min-height: 120px;
@@ -220,7 +220,7 @@ h1, h2, h3 {
     gap: 0.7rem;
     padding: 0.5rem 0.85rem;
     border-radius: 5px;
-    font-family: 'Space Mono', monospace;
+    font-family: 'Mulish', sans-serif;
     font-size: 0.70rem;
     transition: background 0.2s;
 }
@@ -258,7 +258,7 @@ h1, h2, h3 {
     gap: 0.6rem;
 }
 .resizer-label {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Mulish', sans-serif;
     font-size: 0.62rem;
     color: #ffffff;
     letter-spacing: 0.12em;
@@ -268,7 +268,7 @@ h1, h2, h3 {
 
 /* ── Preview ─────────────────────────────────────────────────────── */
 .preview-meta {
-    font-family: 'Space Mono', monospace;
+    font-family: 'Mulish', sans-serif;
     font-size: 0.68rem;
     color: #ffffff;
     margin-bottom: 0.4rem;
@@ -276,7 +276,7 @@ h1, h2, h3 {
 
 /* ── Streamlit widget overrides ──────────────────────────────────── */
 div[data-testid="stButton"] > button {
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'Mulish', sans-serif !important;
     font-size: 0.78rem !important;
     letter-spacing: 0.08em !important;
     border-radius: 5px !important;
@@ -314,13 +314,13 @@ div[data-testid="stButton"] > button[kind="secondary"]:hover {
     background: #111422 !important;
     border-color: #1e2340 !important;
     color: #ffffff !important;
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'Mulish', sans-serif !important;
     font-size: 0.80rem !important;
 }
 .stCode pre {
     background: #080b14 !important;
     border: 1px solid #1e2340 !important;
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'Mulish', sans-serif !important;
     font-size: 0.72rem !important;
     border-radius: 6px !important;
     max-height: 1200px !important;
@@ -338,10 +338,10 @@ hr { border-color: #1e2340 !important; margin: 0.7rem 0 !important; }
 .stSuccess, .stInfo, .stError, .stWarning {
     border-radius: 5px !important;
     font-size: 0.72rem !important;
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'Mulish', sans-serif !important;
 }
 div[data-testid="stDownloadButton"] > button {
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'Mulish', sans-serif !important;
     font-size: 0.68rem !important;
     background: #111422 !important;
     border: 1px solid #2a3060 !important;
@@ -363,7 +363,7 @@ div[data-testid="stDownloadButton"] > button:hover {
     background: transparent !important;
     border-radius: 5px 5px 0 0 !important;
     color: #5a6090 !important;
-    font-family: 'Space Mono', monospace !important;
+    font-family: 'Mulish', sans-serif !important;
     font-size: 0.72rem !important;
     padding: 0.5rem 1rem !important;
 }
@@ -497,7 +497,7 @@ def page_upload():
             icon  = "✅" if ok else "⬜"
             color = "#10b981" if ok else "#ffffff"
             check_html += (
-                f'<div style="font-family:Space Mono,monospace;font-size:0.72rem;'
+                f'<div style="font-family:Mulish,sans-serif;font-size:0.72rem;'
                 f'color:{color};padding:0.2rem 0;">{icon} {label}</div>'
             )
         check_html += "</div>"
@@ -511,7 +511,7 @@ def page_upload():
         else:
             st.markdown(
                 '<div class="panel-box" style="display:flex;align-items:center;justify-content:center;'
-                'color:#10b981;font-family:Space Mono,monospace;font-size:0.80rem;">'
+                'color:#10b981;font-family:Mulish,sans-serif;font-size:0.80rem;">'
                 '✅ All files ready — click BENCHMARK to start'
                 '</div>',
                 unsafe_allow_html=True,
@@ -542,7 +542,7 @@ def page_running():
         elapsed = int(time.time() - start_t)
         mins, secs = divmod(elapsed, 60)
         st.markdown(
-            f'<div style="font-family:Space Mono,monospace;font-size:0.65rem;'
+            f'<div style="font-family:Mulish,sans-serif;font-size:0.65rem;'
             f'color:#ffffff;text-align:right;padding:0.2rem 1.5rem 0;">'
             f'⏱ Elapsed: {mins:02d}:{secs:02d}</div>',
             unsafe_allow_html=True,
