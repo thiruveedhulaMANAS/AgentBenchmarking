@@ -34,7 +34,7 @@ from utils.file_helpers import parse_display_content
 # Constants
 # ---------------------------------------------------------------------------
 _STATUS_ICON = {
-    STATUS_PENDING:   ("⬜", "#3d4466"),
+    STATUS_PENDING:   ("⬜", "#ffffff"),
     STATUS_RUNNING:   ("🔄", "#f59e0b"),
     STATUS_DONE:      ("✅", "#10b981"),
     STATUS_ERROR:     ("❌", "#ef4444"),
@@ -52,7 +52,7 @@ _STATUS_BORDER = {
     STATUS_RUNNING:   "#f59e0b",
     STATUS_DONE:      "#10b981",
     STATUS_ERROR:     "#ef4444",
-    STATUS_CANCELLED: "#3d4466",
+    STATUS_CANCELLED: "#ffffff",
 }
 
 _OP_LABELS = {
@@ -87,77 +87,99 @@ def render_top_upload_bar(page: str = "upload"):
     """
     st.markdown("""
     <style>
-    .upload-cell-title {
-        font-family: 'Space Mono', monospace;
-        font-size: 1.05rem;
-        font-weight: 700;
-        letter-spacing: 0.10em;
-        color: #6c8eff;
-        text-transform: uppercase;
-        margin-bottom: 0.45rem;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        border-bottom: 1px solid #1e2340;
-        padding-bottom: 0.35rem;
-    }
-    .upload-cell-ok {
-        font-family: 'Space Mono', monospace;
-        font-size: 0.80rem;
-        color: #10b981;
-        margin-top: 0.15rem;
-        word-break: break-all;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-    .upload-cell-badge {
-        font-size: 0.60rem;
-        background: #0a2010;
-        border: 1px solid #10b981;
-        border-radius: 4px;
-        padding: 1px 5px;
-        color: #10b981;
-        flex-shrink: 0;
-    }
-    .upload-cell-locked {
-        font-family: 'Space Mono', monospace;
-        font-size: 0.76rem;
-        color: #5a6090;
-        margin-top: 0.15rem;
-        word-break: break-all;
-        font-style: italic;
-    }
-    .upload-cell-draft {
-        font-family: 'Space Mono', monospace;
-        font-size: 0.78rem;
-        color: #10b981;
-        margin-top: 0.12rem;
-        word-break: break-all;
-    }
-    [data-testid="stFileUploaderDropzone"] {
-        background: #080b14 !important;
-        border: 1px dashed #2a3060 !important;
-        border-radius: 5px !important;
-        padding: 0.25rem 0.5rem !important;
-        min-height: 42px !important;
-        transition: border-color 0.2s;
-    }
-    [data-testid="stFileUploaderDropzone"]:hover {
-        border-color: #6c8eff !important;
-    }
-    [data-testid="stFileUploaderDropzone"] p {
-        font-size: 0.58rem !important;
-        color: #3d4466 !important;
-        font-family: 'Space Mono', monospace !important;
-    }
-    [data-testid="stFileUploaderDropzone"] svg { display: none !important; }
-    [data-testid="stFileUploaderDropzone"] label { display: none !important; }
-    [data-testid="stFileUploaderFile"] { display: none !important; }
-    [data-testid="stFileUploaderFileData"] { display: none !important; }
-    [data-testid="stFileUploaderFileName"] { display: none !important; }
-    section[data-testid="stFileUploader"] > div:last-child > div { display: none !important; }
-    </style>
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800&display=swap');
+
+body, [class*="css"] {
+    font-family: 'Mulish', sans-serif;
+    color: #ffffff;
+}
+
+h1, h2, h3 {
+    font-family: 'Mulish', sans-serif;
+}
+
+.upload-cell-title {
+    font-family: 'Mulish', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    color: #6c8eff;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-bottom: 1px solid #1e2340;
+    padding-bottom: 0.35rem;
+}
+
+.upload-cell-ok {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.80rem;
+    color: #10b981;
+    margin-top: 0.15rem;
+    word-break: break-all;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.upload-cell-badge {
+    font-size: 0.60rem;
+    background: #0a2010;
+    border: 1px solid #10b981;
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: #10b981;
+    flex-shrink: 0;
+}
+
+.upload-cell-locked {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.76rem;
+    color: #ffffff;
+    margin-top: 0.15rem;
+    word-break: break-all;
+    font-style: italic;
+}
+
+.upload-cell-draft {
+    font-family: 'Mulish', sans-serif;
+    font-size: 0.78rem;
+    color: #ffffff;
+    margin-top: 0.12rem;
+    word-break: break-all;
+}
+
+[data-testid="stFileUploaderDropzone"] {
+    background: #080b14 !important;
+    border: 1px dashed #2a3060 !important;
+    border-radius: 5px !important;
+    padding: 0.25rem 0.5rem !important;
+    min-height: 42px !important;
+    transition: border-color 0.2s;
+}
+
+[data-testid="stFileUploaderDropzone"]:hover {
+    border-color: #6c8eff !important;
+}
+
+[data-testid="stFileUploaderDropzone"] p {
+    font-size: 0.58rem !important;
+    color: #ffffff !important;
+    font-family: 'Mulish', sans-serif !important;
+}
+
+[data-testid="stFileUploaderDropzone"] svg { display: none !important; }
+[data-testid="stFileUploaderDropzone"] label { display: none !important; }
+[data-testid="stFileUploaderFile"] { display: none !important; }
+[data-testid="stFileUploaderFileData"] { display: none !important; }
+[data-testid="stFileUploaderFileName"] { display: none !important; }
+
+section[data-testid="stFileUploader"] > div:last-child > div {
+    display: none !important;
+}
+</style>
     """, unsafe_allow_html=True)
 
     files_locked = st.session_state.get("_files_locked", False)
@@ -229,7 +251,7 @@ def render_top_upload_bar(page: str = "upload"):
 
             st.markdown(
                 '<div style="font-family:Space Mono,monospace;font-size:0.85rem;'
-                'color:#3d4466;margin-top:0.3rem;">Single file · .txt or .pdf</div>',
+                'color:#ffffff;margin-top:0.3rem;">Single file · .txt file</div>',
                 unsafe_allow_html=True,
             )
 
@@ -291,7 +313,7 @@ def render_top_upload_bar(page: str = "upload"):
 
             st.markdown(
                 '<div style="font-family:Space Mono,monospace;font-size:0.85rem;'
-                'color:#3d4466;margin-top:0.3rem;">Single file · .txt</div>',
+                'color:#ffffff;margin-top:0.3rem;">Single file · .txt file</div>',
                 unsafe_allow_html=True,
             )
 
@@ -367,7 +389,7 @@ def render_top_upload_bar(page: str = "upload"):
 
             st.markdown(
                 '<div style="font-family:Space Mono,monospace;font-size:0.85rem;'
-                'color:#3d4466;margin-top:0.3rem;">Multiple files allowed · one file = one model</div>',
+                'color:#ffffff;margin-top:0.3rem;">Multiple files allowed · one file = one model</div>',
                 unsafe_allow_html=True,
             )
 
@@ -493,7 +515,7 @@ def render_execution_panel(status_dict: dict, cov_result=None):
         <div style="margin-bottom:0.85rem;">
           <div style="display:flex;justify-content:space-between;
                       font-family:Space Mono,monospace;font-size:0.62rem;
-                      color:#5a6090;margin-bottom:4px;">
+                      color:#ffffff;margin-bottom:4px;">
             <span>Progress</span>
             <span>{done_count}/{len(ops_order)} steps · {progress_pct}%</span>
           </div>
@@ -512,7 +534,7 @@ def render_execution_panel(status_dict: dict, cov_result=None):
     for key in ops_order:
         op     = status_dict.get(key, {})
         status = op.get("status", STATUS_PENDING)
-        icon, color = _STATUS_ICON.get(status, ("⬜", "#3d4466"))
+        icon, color = _STATUS_ICON.get(status, ("⬜", "#ffffff"))
         border = _STATUS_BORDER.get(status, "#1e2340")
         label  = _OP_LABELS.get(key, key)
         spinner = '<span class="spinner"></span>' if status == STATUS_RUNNING else ""
@@ -532,7 +554,7 @@ def render_execution_panel(status_dict: dict, cov_result=None):
         op     = status_dict.get(key, {})
         status = op.get("status", STATUS_PENDING)
         msg    = op.get("message", "")
-        icon, color = _STATUS_ICON.get(status, ("⬜", "#3d4466"))
+        icon, color = _STATUS_ICON.get(status, ("⬜", "#ffffff"))
         bg     = _STATUS_BG.get(status, "#0e1020")
         border = _STATUS_BORDER.get(status, "#1e2340")
         label  = _OP_LABELS.get(key, key)
@@ -564,7 +586,7 @@ def _render_backend_logs(status_dict: dict):
     if not logs:
         st.markdown(
             '<div style="font-family:Space Mono,monospace;font-size:0.67rem;'
-            'color:#3d4466;padding:0.35rem 0;">No log entries yet…</div>',
+            'color:#ffffff;padding:0.35rem 0;">No log entries yet…</div>',
             unsafe_allow_html=True,
         )
         return
@@ -574,22 +596,21 @@ def _render_backend_logs(status_dict: dict):
             return f'<div style="padding:1.5px 0;color:#ef4444;">{line}</div>'
         if "[WARN]" in line:
             return f'<div style="padding:1.5px 0;color:#f59e0b;">{line}</div>'
-        # Dim the timestamp portion
+        # White for all normal log lines
         if "]" in line:
             ts_end = line.index("]") + 1
             ts_part = line[:ts_end]
             rest = line[ts_end:]
-            # Find second bracket end for level tag
             if "]" in rest:
                 lvl_end = rest.index("]") + 1
                 return (
-                    f'<div style="padding:1.5px 0;color:#8090b8;">'
-                    f'<span style="color:#3d4466;">{ts_part}</span>'
-                    f'<span style="color:#5a6090;">{rest[:lvl_end]}</span>'
+                    f'<div style="padding:1.5px 0;color:#ffffff;">'
+                    f'<span style="color:#ffffff;">{ts_part}</span>'
+                    f'<span style="color:#ffffff;">{rest[:lvl_end]}</span>'
                     f'{rest[lvl_end:]}</div>'
                 )
-            return f'<div style="padding:1.5px 0;color:#8090b8;"><span style="color:#3d4466;">{ts_part}</span>{rest}</div>'
-        return f'<div style="padding:1.5px 0;color:#8090b8;">{line}</div>'
+            return f'<div style="padding:1.5px 0;color:#ffffff;"><span style="color:#ffffff;">{ts_part}</span>{rest}</div>'
+        return f'<div style="padding:1.5px 0;color:#ffffff;">{line}</div>'
 
     lines_html = "".join(_color_line(l) for l in logs)
     uid = f"log_{int(time.time() * 1000) % 10_000_000}"
@@ -649,13 +670,13 @@ def render_coverage_panel(status_dict: dict, cov_result):
     if not cov_done or not cov_result:
         cov_status  = status_dict.get("coverage_call", {}).get("status", STATUS_PENDING)
         wait_status = status_dict.get("coverage_wait", {}).get("status", STATUS_PENDING)
-        icon_c, color_c = _STATUS_ICON.get(cov_status,  ("⬜", "#3d4466"))
-        icon_w, color_w = _STATUS_ICON.get(wait_status, ("⬜", "#3d4466"))
+        icon_c, color_c = _STATUS_ICON.get(cov_status,  ("⬜", "#ffffff"))
+        icon_w, color_w = _STATUS_ICON.get(wait_status, ("⬜", "#ffffff"))
         spinner_c = '<span class="spinner"></span>' if cov_status  == STATUS_RUNNING else ""
         spinner_w = '<span class="spinner"></span>' if wait_status == STATUS_RUNNING else ""
         st.markdown(
             f'<div style="font-family:Space Mono,monospace;font-size:0.80rem;'
-            f'color:#5a6090;padding:0.5rem 0 1rem;">'
+            f'color:#ffffff;padding:0.5rem 0 1rem;">'
             f'{icon_c}{spinner_c} Submitting coverage agent… '
             f'<span style="color:{color_c};">{cov_status.upper()}</span><br>'
             f'{icon_w}{spinner_w} Awaiting response… '
@@ -798,7 +819,7 @@ def render_results_panel(results: list, cov_result=None):
     )
     header_row = (
         f'<tr>'
-        f'<th style="{th_base}color:#8890b8;min-width:200px;">Dimension</th>'
+        f'<th style="{th_base}color:#ffffff;min-width:200px;">Dimension</th>'
         f'{header_cells}'
         f'</tr>'
     )
@@ -813,7 +834,7 @@ def render_results_panel(results: list, cov_result=None):
         row_bg = "#101830" if is_total else ("#0b0e1c" if i % 2 == 0 else "#0e1120")
 
         # Dimension cell
-        dim_color  = "#ffffff" if is_total else "#c8cce8"
+        dim_color  = "#ffffff" if is_total else "#ffffff"
         dim_weight = "800"     if is_total else "700"
         dim_border = "border-left:3px solid #6c8eff;" if is_total else ""
         metric_cell = (
@@ -831,12 +852,12 @@ def render_results_panel(results: list, cov_result=None):
             val_str = val_str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
             if is_model:
-                cell_color = "#a0b0ff"
+                cell_color = "#ffffff"
             elif is_total and rank_order and j in rank_order[:3]:
                 pos = rank_order.index(j)
                 cell_color = _RANK_COLORS[pos]
             else:
-                cell_color = "#d4d8e8"
+                cell_color = "#ffffff"
 
             value_cells += (
                 f'<td style="padding:0.7rem 1.2rem;font-family:Space Mono,monospace;'
@@ -945,7 +966,7 @@ def render_detail_files_panel(results: list, cov_result=None):
             if exec_id:
                 st.markdown(
                     f'<div style="font-family:Space Mono,monospace;font-size:0.62rem;'
-                    f'color:#3d4466;">Execution ID: {exec_id}</div>',
+                    f'color:#ffffff;">Execution ID: {exec_id}</div>',
                     unsafe_allow_html=True,
                 )
         with dl_col:
