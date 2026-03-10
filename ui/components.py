@@ -291,7 +291,7 @@ def render_top_upload_bar(page: str = "upload"):
 
             st.markdown(
                 '<div style="font-family:Space Mono,monospace;font-size:0.85rem;'
-                'color:#3d4466;margin-top:0.3rem;">Single file · .txt or .py</div>',
+                'color:#3d4466;margin-top:0.3rem;">Single file · .txt</div>',
                 unsafe_allow_html=True,
             )
 
@@ -893,14 +893,14 @@ def render_detail_files_panel(results: list, cov_result=None):
     options = [r["filename"] for r in results]
     has_coverage = cov_result is not None
     if has_coverage:
-        options = ["[Coverage Output]"] + options
+        options = ["Coverage Output"] + options
 
     sel = st.selectbox(
         "Select result file:", options=options,
         key="result_file_sel", label_visibility="collapsed",
     )
 
-    if sel == "[Coverage Output]" and has_coverage:
+    if sel == "Coverage Output" and has_coverage:
         cov_text  = cov_result.get("coverage_text", "")
         exec_id   = cov_result.get("execution_id", "")
         cov_fname = f"coverage-output-{exec_id[:8]}.txt"
