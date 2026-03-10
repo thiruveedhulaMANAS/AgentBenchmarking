@@ -250,7 +250,7 @@ section[data-testid="stFileUploader"] > div:last-child > div {
                 instruction_file = None
 
             st.markdown(
-                '<div style="font-family:Space Mono,monospace;font-size:0.85rem;'
+                '<div style="font-family:Mulish,sans-serif;font-size:0.85rem;'
                 'color:#ffffff;margin-top:0.3rem;">Single file · .txt file</div>',
                 unsafe_allow_html=True,
             )
@@ -312,7 +312,7 @@ section[data-testid="stFileUploader"] > div:last-child > div {
                 input_file = None
 
             st.markdown(
-                '<div style="font-family:Space Mono,monospace;font-size:0.85rem;'
+                '<div style="font-family:Mulish,sans-serif;font-size:0.85rem;'
                 'color:#ffffff;margin-top:0.3rem;">Single file · .txt file</div>',
                 unsafe_allow_html=True,
             )
@@ -388,7 +388,7 @@ section[data-testid="stFileUploader"] > div:last-child > div {
                 st.session_state.pop("outs_up", None)
 
             st.markdown(
-                '<div style="font-family:Space Mono,monospace;font-size:0.85rem;'
+                '<div style="font-family:Mulish,sans-serif;font-size:0.85rem;'
                 'color:#ffffff;margin-top:0.3rem;">Multiple files allowed · one file = one model</div>',
                 unsafe_allow_html=True,
             )
@@ -420,7 +420,7 @@ section[data-testid="stFileUploader"] > div:last-child > div {
                     missing.append("output")
                 missing_str = " · ".join(missing)
                 st.markdown(
-                    f"<div style='font-family:Space Mono,monospace;font-size:0.68rem;"
+                    f"<div style='font-family:Mulish,sans-serif;font-size:0.68rem;"
                     f"color:#5a6090;text-align:center;margin-top:0.25rem;'>"
                     f"Missing: {missing_str}</div>",
                     unsafe_allow_html=True,
@@ -514,7 +514,7 @@ def render_execution_panel(status_dict: dict, cov_result=None):
         f"""
         <div style="margin-bottom:0.85rem;">
           <div style="display:flex;justify-content:space-between;
-                      font-family:Space Mono,monospace;font-size:0.62rem;
+                      font-family:Mulish,sans-serif;font-size:0.62rem;
                       color:#ffffff;margin-bottom:4px;">
             <span>Progress</span>
             <span>{done_count}/{len(ops_order)} steps · {progress_pct}%</span>
@@ -541,7 +541,7 @@ def render_execution_panel(status_dict: dict, cov_result=None):
         pills_html += (
             f'<span style="background:#0e1020;border:1px solid {border};'
             f'border-radius:20px;padding:0.16rem 0.6rem;'
-            f'font-family:Space Mono,monospace;font-size:0.57rem;'
+            f'font-family:Mulish,sans-serif;font-size:0.57rem;'
             f'color:{color};white-space:nowrap;">'
             f'{icon}{spinner} {label}</span>'
         )
@@ -585,7 +585,7 @@ def _render_backend_logs(status_dict: dict):
 
     if not logs:
         st.markdown(
-            '<div style="font-family:Space Mono,monospace;font-size:0.67rem;'
+            '<div style="font-family:Mulish,sans-serif;font-size:0.67rem;'
             'color:#ffffff;padding:0.35rem 0;">No log entries yet…</div>',
             unsafe_allow_html=True,
         )
@@ -622,7 +622,7 @@ def _render_backend_logs(status_dict: dict):
             border: 1px solid #1e2a50;
             border-radius: 6px;
             padding: 0.8rem 1rem;
-            font-family: 'Space Mono', monospace;
+            font-family: 'Mulish', sans-serif;
             font-size: 0.66rem;
             white-space: pre-wrap;
             line-height: 1.75;
@@ -675,7 +675,7 @@ def render_coverage_panel(status_dict: dict, cov_result):
         spinner_c = '<span class="spinner"></span>' if cov_status  == STATUS_RUNNING else ""
         spinner_w = '<span class="spinner"></span>' if wait_status == STATUS_RUNNING else ""
         st.markdown(
-            f'<div style="font-family:Space Mono,monospace;font-size:0.80rem;'
+            f'<div style="font-family:Mulish,sans-serif;font-size:0.80rem;'
             f'color:#ffffff;padding:0.5rem 0 1rem;">'
             f'{icon_c}{spinner_c} Submitting coverage agent… '
             f'<span style="color:{color_c};">{cov_status.upper()}</span><br>'
@@ -690,7 +690,7 @@ def render_coverage_panel(status_dict: dict, cov_result):
         agent_outputs = cov_result.get("agent_outputs", [])
 
         st.markdown(
-            f'<div style="font-family:Space Mono,monospace;font-size:0.70rem;'
+            f'<div style="font-family:Mulish,sans-serif;font-size:0.70rem;'
             f'color:#10b981;margin-bottom:0.6rem;">✅ Coverage complete — {exec_label} '
             f'— {len(agent_outputs)} agent output(s)</div>',
             unsafe_allow_html=True,
@@ -703,7 +703,7 @@ def render_coverage_panel(status_dict: dict, cov_result):
                     safe = ao.get("content", "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                     st.markdown(
                         f'<div style="background:#080b14;border:1px solid #1e2a50;border-radius:6px;'
-                        f'padding:0.8rem 1rem;font-family:Space Mono,monospace;font-size:0.67rem;'
+                        f'padding:0.8rem 1rem;font-family:Mulish,sans-serif;font-size:0.67rem;'
                         f'color:#8090b8;white-space:pre-wrap;overflow-x:auto;line-height:1.65;">'
                         f'{safe}</div>',
                         unsafe_allow_html=True,
@@ -716,7 +716,7 @@ def render_coverage_panel(status_dict: dict, cov_result):
                         safe = ao.get("content", "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                         st.markdown(
                             f'<div style="background:#080b14;border:1px solid #1e2a50;border-radius:6px;'
-                            f'padding:0.8rem 1rem;font-family:Space Mono,monospace;font-size:0.67rem;'
+                            f'padding:0.8rem 1rem;font-family:Mulish,sans-serif;font-size:0.67rem;'
                             f'color:#8090b8;white-space:pre-wrap;overflow-x:auto;line-height:1.65;">'
                             f'{safe}</div>',
                             unsafe_allow_html=True,
@@ -809,7 +809,7 @@ def render_results_panel(results: list, cov_result=None):
     # ── Header row ───────────────────────────────────────────────────────
     th_base = (
         "padding:0.75rem 1.2rem;text-align:left;"
-        "font-family:Space Mono,monospace;font-size:0.82rem;font-weight:700;"
+        "font-family:Mulish,sans-serif;font-size:0.82rem;font-weight:700;"
         "border-bottom:2px solid #1e2a50;white-space:nowrap;"
     )
     header_cells = "".join(
@@ -838,7 +838,7 @@ def render_results_panel(results: list, cov_result=None):
         dim_weight = "800"     if is_total else "700"
         dim_border = "border-left:3px solid #6c8eff;" if is_total else ""
         metric_cell = (
-            f'<td style="padding:0.7rem 1.2rem;font-family:Space Mono,monospace;'
+            f'<td style="padding:0.7rem 1.2rem;font-family:Mulish,sans-serif;'
             f'font-size:0.82rem;font-weight:{dim_weight};color:{dim_color};'
             f'border-right:1px solid #1a1f3a;{dim_border}">'
             f'{metric}</td>'
@@ -860,7 +860,7 @@ def render_results_panel(results: list, cov_result=None):
                 cell_color = "#ffffff"
 
             value_cells += (
-                f'<td style="padding:0.7rem 1.2rem;font-family:Space Mono,monospace;'
+                f'<td style="padding:0.7rem 1.2rem;font-family:Mulish,sans-serif;'
                 f'font-size:0.82rem;font-weight:700;color:{cell_color};">'
                 f'{val_str}</td>'
             )
@@ -959,13 +959,13 @@ def render_detail_files_panel(results: list, cov_result=None):
         meta_col, dl_col = st.columns([3, 2])
         with meta_col:
             st.markdown(
-                f'<div style="font-family:Space Mono,monospace;font-size:0.72rem;'
+                f'<div style="font-family:Mulish,sans-serif;font-size:0.72rem;'
                 f'color:#6c8eff;font-weight:700;">Model: {model or "—"}</div>',
                 unsafe_allow_html=True,
             )
             if exec_id:
                 st.markdown(
-                    f'<div style="font-family:Space Mono,monospace;font-size:0.62rem;'
+                    f'<div style="font-family:Mulish,sans-serif;font-size:0.62rem;'
                     f'color:#ffffff;">Execution ID: {exec_id}</div>',
                     unsafe_allow_html=True,
                 )
