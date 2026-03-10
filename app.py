@@ -55,13 +55,18 @@ st.set_page_config(
 # ── Global CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
 
 /* ── Base reset ──────────────────────────────────────────────────── */
 html, body, [class*="css"] {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Mulish', sans-serif;
     background: #0b0d14;
-    color: #d4d8e8;
+    color: #ffffff;
+}
+
+h1, h2, h3 {
+    font-family: 'Mulish', sans-serif;
+    font-weight: 700;
 }
 .stApp { background: #0b0d14; }
 #MainMenu, footer, header { visibility: hidden; }
@@ -119,7 +124,7 @@ html, body, [class*="css"] {
     font-size: 1.85rem !important;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: #d4d8e8;
+    color: #ffffff;
     margin: 0;
 }
 .top-bar-title .accent { color: #6c8eff; }
@@ -197,7 +202,7 @@ html, body, [class*="css"] {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #3d4466;
+    color: #ffffff;
     font-family: 'Space Mono', monospace;
     font-size: 0.78rem;
     letter-spacing: 0.08em;
@@ -220,7 +225,7 @@ html, body, [class*="css"] {
     transition: background 0.2s;
 }
 .op-icon  { font-size: 0.9rem; white-space: nowrap; }
-.op-label { color: #c8cce8; font-weight: 700; }
+.op-label { color: #ffffff; font-weight: 700; }
 .op-status { font-size: 0.55rem; letter-spacing: 0.1em; text-align: right; }
 .op-message {
     color: #5a6090;
@@ -255,7 +260,7 @@ html, body, [class*="css"] {
 .resizer-label {
     font-family: 'Space Mono', monospace;
     font-size: 0.62rem;
-    color: #3d4466;
+    color: #ffffff;
     letter-spacing: 0.12em;
     white-space: nowrap;
     text-transform: uppercase;
@@ -265,7 +270,7 @@ html, body, [class*="css"] {
 .preview-meta {
     font-family: 'Space Mono', monospace;
     font-size: 0.68rem;
-    color: #3d4466;
+    color: #ffffff;
     margin-bottom: 0.4rem;
 }
 
@@ -292,7 +297,7 @@ div[data-testid="stButton"] > button[kind="primary"]:hover {
 }
 div[data-testid="stButton"] > button[kind="primary"]:disabled {
     background: #1e2340 !important;
-    color: #3d4466 !important;
+    color: #ffffff !important;
     box-shadow: none !important;
     transform: none !important;
 }
@@ -308,7 +313,7 @@ div[data-testid="stButton"] > button[kind="secondary"]:hover {
 .stSelectbox > div > div {
     background: #111422 !important;
     border-color: #1e2340 !important;
-    color: #d4d8e8 !important;
+    color: #ffffff !important;
     font-family: 'Space Mono', monospace !important;
     font-size: 0.80rem !important;
 }
@@ -490,7 +495,7 @@ def page_upload():
         check_html = '<div style="margin-bottom:0.8rem;">'
         for label, ok in checks:
             icon  = "✅" if ok else "⬜"
-            color = "#10b981" if ok else "#3d4466"
+            color = "#10b981" if ok else "#ffffff"
             check_html += (
                 f'<div style="font-family:Space Mono,monospace;font-size:0.72rem;'
                 f'color:{color};padding:0.2rem 0;">{icon} {label}</div>'
@@ -538,7 +543,7 @@ def page_running():
         mins, secs = divmod(elapsed, 60)
         st.markdown(
             f'<div style="font-family:Space Mono,monospace;font-size:0.65rem;'
-            f'color:#3d4466;text-align:right;padding:0.2rem 1.5rem 0;">'
+            f'color:#ffffff;text-align:right;padding:0.2rem 1.5rem 0;">'
             f'⏱ Elapsed: {mins:02d}:{secs:02d}</div>',
             unsafe_allow_html=True,
         )
