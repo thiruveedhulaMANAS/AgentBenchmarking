@@ -207,55 +207,170 @@ def _poll_until_complete(execution_id, cancel_event=None, log_sink=None):
         elapsed += POLL_INTERVAL_SECONDS
 
 
-def _fetch_result(execution_id):
+def _fetch_result(execution_id, log_sink=None):
     """
     Fetch and parse the result of a completed workflow.
+
+    The AAVA API sometimes returns an empty/incomplete result immediately
+    after reporting SUCCESS status — the result data is written asynchronously.
+    This function retries up to RESULT_FETCH_MAX_RETRIES times with
+    RESULT_FETCH_RETRY_INTERVAL_SECONDS between attempts until a valid
+    non-null result with at least one of the expected keys is returned.
 
     Returns
     -------
     dict  parsed result with pipeLineAgents and tasksOutputs
     """
+    RESULT_FETCH_MAX_RETRIES = 10
+    RESULT_FETCH_RETRY_INTERVAL_SECONDS = 3
+
+    def _emit(msg):
+        logger.info(msg)
+        if log_sink:
+            log_sink(msg)
+
     url = f"{API_BASE}{WORKFLOW_EXECUTIONS_ENDPOINT}/{execution_id}/result"
 
-    try:
-        resp = requests.get(
-            url,
-            headers=AAVA_HEADERS,
-            timeout=REQUEST_TIMEOUT_SECONDS,
-            verify=VERIFY_SSL,
-        )
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        raise AgentAPIError(f"Result fetch failed for {execution_id}: {e}")
+    for attempt in range(1, RESULT_FETCH_MAX_RETRIES + 1):
+        try:
+            resp = requests.get(
+                url,
+                headers=AAVA_HEADERS,
+                timeout=REQUEST_TIMEOUT_SECONDS,
+                verify=VERIFY_SSL,
+            )
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            raise AgentAPIError(f"Result fetch failed for {execution_id}: {e}")
 
-    try:
-        raw_response = resp.json()["data"]["result"]["response"]
-        result = json.loads(raw_response)
-    except (KeyError, TypeError) as e:
-        raise AgentAPIError(f"Unexpected result shape for {execution_id}: {e}")
-    except json.JSONDecodeError as e:
-        raise AgentAPIError(
-            f"Result response is not valid JSON for {execution_id}: {e}"
-        )
+        # The API may return the result payload as a nested JSON string,
+        # or the result/data keys may simply be absent on the first few calls.
+        try:
+            body         = resp.json()
+            data_block   = body.get("data") or {}
+            result_block = data_block.get("result") or {}
+            raw_response = result_block.get("response")
+        except (AttributeError, ValueError):
+            body         = {}
+            result_block = {}
+            raw_response = None
 
-    return result
+
+        # No response field yet — result not populated on the server side
+        if not raw_response:
+            _emit(
+                f"[RESULT] {execution_id} — attempt {attempt}/{RESULT_FETCH_MAX_RETRIES}: "
+                f"response field empty, retrying in {RESULT_FETCH_RETRY_INTERVAL_SECONDS}s…"
+            )
+            time.sleep(RESULT_FETCH_RETRY_INTERVAL_SECONDS)
+            continue
+
+        # Parse the nested JSON string
+        try:
+            result = json.loads(raw_response)
+        except json.JSONDecodeError as e:
+            raise AgentAPIError(
+                f"Result response is not valid JSON for {execution_id}: {e}"
+            )
+
+        # Null payload — treat same as empty
+        if result is None:
+            _emit(
+                f"[RESULT] {execution_id} — attempt {attempt}/{RESULT_FETCH_MAX_RETRIES}: "
+                f"payload is null, retrying in {RESULT_FETCH_RETRY_INTERVAL_SECONDS}s…"
+            )
+            time.sleep(RESULT_FETCH_RETRY_INTERVAL_SECONDS)
+            continue
+
+        # Check that at least one of the expected keys is present and non-empty
+        has_agents = bool(result.get("pipeLineAgents") or result.get("tasksOutputs"))
+        if not has_agents:
+            _emit(
+                f"[RESULT] {execution_id} — attempt {attempt}/{RESULT_FETCH_MAX_RETRIES}: "
+                f"pipeLineAgents/tasksOutputs missing or empty, retrying in {RESULT_FETCH_RETRY_INTERVAL_SECONDS}s…"
+            )
+            time.sleep(RESULT_FETCH_RETRY_INTERVAL_SECONDS)
+            continue
+
+        _emit(f"[RESULT] {execution_id} — result received on attempt {attempt}")
+
+        return result
+
+    raise AgentAPIError(
+        f"Result for {execution_id} was not populated after "
+        f"{RESULT_FETCH_MAX_RETRIES} attempts — the workflow may have completed "
+        "without producing output."
+    )
 
 
 def _extract_agent_outputs(result):
     """
     Zip pipeLineAgents with tasksOutputs into a clean list.
 
+    AAVA API behaviour observed:
+      - pipeLineAgents is often [] (empty) even when tasksOutputs has content.
+      - When pipeLineAgents is empty we fall back to tasksOutputs alone, using
+        the workflow-level "name" field (or agents[].agent.name from the nested
+        workflow definition) as the agent name.
+
     Returns
     -------
     list[dict]  [{"agent_name": str, "content": str}, ...]
     """
-    agents = result.get("pipeLineAgents", [])
-    tasks  = result.get("tasksOutputs", [])
+    if not result or not isinstance(result, dict):
+        return []
+
+    agents = result.get("pipeLineAgents") or []
+    tasks  = result.get("tasksOutputs")   or []
+
+    if not tasks:
+        return []
+
     outputs = []
-    for agent, task in zip(agents, tasks):
-        name    = agent.get("agent", {}).get("name", "Unknown Agent")
-        content = task.get("raw") or task.get("description") or ""
-        outputs.append({"agent_name": name, "content": content})
+
+    if agents:
+        # Normal path: pipeLineAgents and tasksOutputs are both populated
+        for agent, task in zip(agents, tasks):
+            if not isinstance(agent, dict):
+                continue
+            name = (
+                agent.get("agent", {}).get("name", "Unknown Agent")
+                if isinstance(agent.get("agent"), dict)
+                else "Unknown Agent"
+            )
+            content = (task.get("raw") or task.get("description") or "") if isinstance(task, dict) else ""
+            outputs.append({"agent_name": name, "content": content})
+    else:
+        # Fallback path: pipeLineAgents is empty — use tasksOutputs directly.
+        # Derive a name from the top-level workflow name in the result payload,
+        # or from the nested agents list inside result["workflow"]["agents"].
+        workflow_name = result.get("name", "Agent")
+
+        # Try to pull agent names from the nested workflow definition if present
+        agent_names = []
+        try:
+            import json as _json
+            wf_raw = result.get("workflow")
+            if isinstance(wf_raw, str):
+                wf_obj = _json.loads(wf_raw)
+            elif isinstance(wf_raw, dict):
+                wf_obj = wf_raw
+            else:
+                wf_obj = {}
+            for ag_entry in (wf_obj.get("workflow", {}).get("agents") or []):
+                n = ag_entry.get("agent", {}).get("name")
+                if n:
+                    agent_names.append(n)
+        except Exception:
+            pass
+
+        for idx, task in enumerate(tasks):
+            if not isinstance(task, dict):
+                continue
+            content = task.get("raw") or task.get("description") or ""
+            name = agent_names[idx] if idx < len(agent_names) else workflow_name
+            outputs.append({"agent_name": name, "content": content})
+
     return outputs
 
 
@@ -302,7 +417,7 @@ def call_coverage_agent(agent_input_bytes, agent_input_filename, cancel_event=No
 
     _poll_until_complete(execution_id, cancel_event=cancel_event, log_sink=log_sink)
 
-    raw_result     = _fetch_result(execution_id)
+    raw_result     = _fetch_result(execution_id, log_sink=log_sink)
     agent_outputs  = _extract_agent_outputs(raw_result)
 
     # Flatten all agent output content into a single text blob
@@ -392,8 +507,9 @@ def call_scoring_agent(
 
     _poll_until_complete(execution_id, cancel_event=cancel_event, log_sink=log_sink)
 
-    raw_result    = _fetch_result(execution_id)
+    raw_result    = _fetch_result(execution_id, log_sink=log_sink)
     agent_outputs = _extract_agent_outputs(raw_result)
+
 
     _emit(
         f"[SCORING] Done. execution_id={execution_id}, "
@@ -460,7 +576,7 @@ def call_summary_agent(
 
     _poll_until_complete(execution_id, cancel_event=cancel_event, log_sink=log_sink)
 
-    raw_result    = _fetch_result(execution_id)
+    raw_result    = _fetch_result(execution_id, log_sink=log_sink)
     agent_outputs = _extract_agent_outputs(raw_result)
 
     summary_text = "\n\n".join(
