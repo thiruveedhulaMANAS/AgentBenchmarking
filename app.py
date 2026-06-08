@@ -13,7 +13,7 @@ import streamlit as st
 
 from backend.workflow import run_benchmark_pipeline
 from ui.components import (
-    render_coverage_panel,
+    render_expectation_panel,
     render_detail_files_panel,
     render_execution_panel,
     render_full_results_page,
@@ -23,6 +23,7 @@ from ui.components import (
     render_top_upload_bar,
 )
 from utils.file_helpers import get_file_bytes
+from utils import config as _cfg
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -43,7 +44,7 @@ def _init_session():
         "cancel_event":           None,
         "pipeline_thread":        None,
         "results":                [],
-        "coverage_result":        None,
+        "expectation_result":        None,
         "summary_result":         None,
         "benchmark_error":        None,
         "_instr_name":            None,
@@ -52,13 +53,24 @@ def _init_session():
         "_files_locked":          False,
         "_draft_instr_bytes":     None,
         "_draft_instr_name":      None,
-        "_draft_input_bytes":     None,
-        "_draft_input_name":      None,
+        "_draft_input_files":     None,
         "_draft_output_files":    None,
         "_pipeline_start_time":   None,
         "_instr_up_gen":          0,
         "_inp_up_gen":            0,
         "_outs_up_gen":           0,
+        # ── Settings: Expectation Agent ──────────────────────────────────
+        "s_exp_workflow_id":      _cfg.EXPECTATION_PIPELINE_ID,
+        "s_exp_agent_name":       _cfg.EXPECTATION_WORKFLOW_NAME,
+        "s_exp_agent_link":       "https://int-ai.aava.ai/console/discover/agent/playground?id=44169",
+        # ── Settings: Scoring Agent ──────────────────────────────────────
+        "s_scr_workflow_id":      _cfg.SCORING_PIPELINE_ID,
+        "s_scr_agent_name":       _cfg.SCORING_WORKFLOW_NAME,
+        "s_scr_agent_link":       "https://int-ai.aava.ai/console/discover/agent/playground?id=27218",
+        # ── Settings: Summary Agent ──────────────────────────────────────
+        "s_sum_workflow_id":      _cfg.SUMMARY_PIPELINE_ID,
+        "s_sum_agent_name":       _cfg.SUMMARY_WORKFLOW_NAME,
+        "s_sum_agent_link":       "",
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -750,6 +762,13 @@ def _top_bar(page_label: str = "UPLOAD"):
         """,
         unsafe_allow_html=True,
     )
+    # Settings gear button — rendered below the top-bar HTML so Streamlit can track its click
+    _, _, gear_col = st.columns([8, 1, 1])
+    with gear_col:
+        if st.button("⚙️", key=f"settings_btn_{page_label}", help="Settings", use_container_width=True):
+            st.session_state["_prev_page"] = st.session_state.page
+            st.session_state.page = "settings"
+            st.rerun()
 
 
 
@@ -759,7 +778,7 @@ def page_upload():
     _inject_css()
     _top_bar("UPLOAD")
 
-    instr_f, input_f, out_fs, run_clicked = render_top_upload_bar(page="upload")
+    instr_f, input_f, out_fs, run_clicked, input_files = render_top_upload_bar(page="upload")
 
     left, right = st.columns([70, 30], gap="small")
 
@@ -814,8 +833,9 @@ def page_upload():
     if run_clicked and all_ready:
         st.session_state._instr_name   = instr_f.name
         st.session_state._input_name   = input_f.name
+        st.session_state._input_names  = [f.name for f in input_files]
         st.session_state._output_names = [f.name for f in out_fs]
-        _start_pipeline(instr_f, input_f, out_fs)
+        _start_pipeline(instr_f, input_files, out_fs)
 
 
 # ── PAGE: RUNNING ──────────────────────────────────────────────────────────────
@@ -825,7 +845,7 @@ def page_running():
     render_top_upload_bar(page="running")
 
     sd         = st.session_state.status_dict
-    cov_result = st.session_state.get("coverage_result")
+    cov_result = st.session_state.get("expectation_result")
     t3         = "#7B6FA0"
 
     start_t = st.session_state.get("_pipeline_start_time")
@@ -843,7 +863,7 @@ def page_running():
     left, right = st.columns([60, 40], gap="small")
 
     with left:
-        render_coverage_panel(sd, cov_result)
+        render_expectation_panel(sd, cov_result)
 
     with right:
         _, btn_col = st.columns([7, 3])
@@ -853,7 +873,7 @@ def page_running():
                     st.session_state.cancel_event.set()
                 st.session_state.status_dict     = {}
                 st.session_state.results         = []
-                st.session_state.coverage_result = None
+                st.session_state.expectation_result = None
                 st.session_state.pipeline_thread = None
                 st.session_state.benchmark_error = None
                 st.session_state._files_locked   = False
@@ -875,9 +895,9 @@ def page_running():
         elif cancelled:
             st.warning("Benchmarking cancelled.")
         else:
-            cov_in_dict = sd.get("_coverage_result")
-            if cov_in_dict and not st.session_state.get("coverage_result"):
-                st.session_state.coverage_result = cov_in_dict
+            cov_in_dict = sd.get("_expectation_result")
+            if cov_in_dict and not st.session_state.get("expectation_result"):
+                st.session_state.expectation_result = cov_in_dict
             time.sleep(1)
             st.rerun()
 
@@ -889,7 +909,7 @@ def page_results():
     render_top_upload_bar(page="results")
 
     results      = st.session_state.results
-    cov_result   = st.session_state.get("coverage_result")
+    cov_result   = st.session_state.get("expectation_result")
     summ_result  = st.session_state.get("summary_result")
 
     _, btn_col = st.columns([7, 3])
@@ -897,7 +917,7 @@ def page_results():
         if st.button("🔄  RUN AGAIN", type="primary", use_container_width=True):
             st.session_state.status_dict     = {}
             st.session_state.results         = []
-            st.session_state.coverage_result = None
+            st.session_state.expectation_result = None
             st.session_state.summary_result  = None
             st.session_state.cancel_event    = None
             st.session_state.pipeline_thread = None
@@ -916,9 +936,8 @@ def page_results():
                 st.session_state["_draft_instr_bytes"] = st.session_state["_saved_instruction_bytes"]
                 st.session_state["_draft_instr_name"]  = st.session_state["_saved_instruction_name"]
 
-            if st.session_state.get("_saved_input_bytes"):
-                st.session_state["_draft_input_bytes"] = st.session_state["_saved_input_bytes"]
-                st.session_state["_draft_input_name"]  = st.session_state["_saved_input_name"]
+            if st.session_state.get("_saved_input_file_data"):
+                st.session_state["_draft_input_files"] = st.session_state["_saved_input_file_data"]
 
             if st.session_state.get("_saved_output_file_data"):
                 st.session_state["_draft_output_files"] = [
@@ -930,20 +949,25 @@ def page_results():
             st.rerun()
 
     st.markdown("<div style='padding:0.8rem 1.5rem 1.5rem;'>", unsafe_allow_html=True)
-    render_full_results_page(results, cov_result, summ_result)
+    render_full_results_page(results, cov_result, summ_result, status_dict=st.session_state.get("status_dict", {}))
     st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ── Pipeline launcher ──────────────────────────────────────────────────────────
-def _start_pipeline(instruction_file, input_file, output_files):
+def _start_pipeline(instruction_file, input_files, output_files):
+    """
+    input_files: list of file-like objects (multiple input files allowed).
+    They are passed to workflow.py which merges them before sending to AAVA.
+    """
     instruction_bytes = get_file_bytes(instruction_file)
-    input_bytes       = get_file_bytes(input_file)
     output_file_data  = [{"name": f.name, "bytes": get_file_bytes(f)} for f in output_files]
+
+    # Build list of {name, bytes} for each input file
+    input_file_data = [{"name": f.name, "bytes": get_file_bytes(f)} for f in input_files]
 
     st.session_state._saved_instruction_bytes = instruction_bytes
     st.session_state._saved_instruction_name  = instruction_file.name
-    st.session_state._saved_input_bytes       = input_bytes
-    st.session_state._saved_input_name        = input_file.name
+    st.session_state._saved_input_file_data   = input_file_data
     st.session_state._saved_output_file_data  = output_file_data
 
     cancel_event   = threading.Event()
@@ -959,8 +983,7 @@ def _start_pipeline(instruction_file, input_file, output_files):
         kwargs=dict(
             instruction_bytes=instruction_bytes,
             instruction_filename=instruction_file.name,
-            input_bytes=input_bytes,
-            input_filename=input_file.name,
+            input_files=input_file_data,
             output_files=output_file_data,
             status_dict=status_dict,
             cancel_event=cancel_event,
@@ -973,7 +996,7 @@ def _start_pipeline(instruction_file, input_file, output_files):
     st.session_state.status_dict           = status_dict
     st.session_state._results_holder       = results_holder
     st.session_state.pipeline_thread       = thread
-    st.session_state.coverage_result       = None
+    st.session_state.expectation_result       = None
     st.session_state.page                  = "running"
     st.session_state._files_locked         = True
     st.session_state._pipeline_start_time  = time.time()
@@ -986,8 +1009,7 @@ def _start_pipeline(instruction_file, input_file, output_files):
     # page even though the Python if/else branch does not call st.file_uploader.
     st.session_state.pop("_draft_instr_bytes", None)
     st.session_state.pop("_draft_instr_name",  None)
-    st.session_state.pop("_draft_input_bytes", None)
-    st.session_state.pop("_draft_input_name",  None)
+    st.session_state.pop("_draft_input_files", None)
     st.session_state.pop("_draft_output_files", None)
     st.session_state["_instr_up_gen"] = st.session_state.get("_instr_up_gen", 0) + 1
     st.session_state["_inp_up_gen"]   = st.session_state.get("_inp_up_gen",   0) + 1
@@ -996,13 +1018,231 @@ def _start_pipeline(instruction_file, input_file, output_files):
     st.rerun()
 
 
+# ── PAGE: SETTINGS ─────────────────────────────────────────────────────────────
+def page_settings():
+    _inject_css()
+    _top_bar("SETTINGS")
+
+    accent   = "#9B6DFF"
+    t1       = "#1A1033"
+    t2       = "#3D3260"
+    t3       = "#7B6FA0"
+    border   = "#E2DCF8"
+    bg_card  = "#FFFFFF"
+    bg_tint  = "#F8F6FF"
+
+    st.markdown(
+        f"""
+        <style>
+        .settings-header {{
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: {t1};
+            margin: 1.5rem 0 0.25rem 0;
+        }}
+        .settings-subheader {{
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 0.78rem;
+            color: {t3};
+            margin-bottom: 1.2rem;
+            letter-spacing: 0.02em;
+        }}
+        .agent-card {{
+            background: {bg_card};
+            border: 1.5px solid {border};
+            border-radius: 14px;
+            padding: 1.2rem 1.4rem 1rem 1.4rem;
+            margin-bottom: 1.1rem;
+            box-shadow: 0 2px 8px rgba(100,70,200,0.07);
+        }}
+        .agent-card-title {{
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: {accent};
+            margin-bottom: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }}
+        .agent-link-btn {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: {accent};
+            color: #fff !important;
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 0.38rem 0.95rem;
+            border-radius: 8px;
+            text-decoration: none !important;
+            margin-top: 0.5rem;
+            transition: background 0.15s;
+        }}
+        .agent-link-btn:hover {{
+            background: #7C4FE0;
+            color: #fff !important;
+        }}
+        .agent-link-disabled {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #E2DCF8;
+            color: {t3} !important;
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.38rem 0.95rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            cursor: not-allowed;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ── Back button (OUTSIDE any form so it always navigates) ────────────────
+    if st.button("← Back", key="settings_back_btn"):
+        prev = st.session_state.get("_prev_page", "upload")
+        st.session_state.page = prev
+        st.rerun()
+
+    st.markdown('<div class="settings-header">⚙️ Settings</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="settings-subheader">Agent workflow IDs, names, and links for each pipeline stage.</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Helper: render one read-only agent card ───────────────────────────────
+    def _agent_card_readonly(icon: str, label: str, wf_key: str, name_key: str, link_key: str):
+        wf_val   = st.session_state.get(wf_key, "") or "—"
+        name_val = st.session_state.get(name_key, "") or "—"
+        link_val = (st.session_state.get(link_key, "") or "").strip()
+        if link_val and not link_val.startswith(("http://", "https://")):
+            link_val = "https://" + link_val
+
+        if link_val:
+            link_html = (
+                f'<a class="agent-link-btn" href="{link_val}" target="_blank" rel="noopener noreferrer">'
+                f'🔗 Open {name_val if name_val != "—" else label}'
+                f'</a>'
+            )
+        else:
+            link_html = '<span class="agent-link-disabled">🔗 No link configured</span>'
+
+        st.markdown(
+            f"""
+            <div class="agent-card">
+                <div class="agent-card-title">{icon} {label}</div>
+                <div class="agent-field-row">
+                    <div class="agent-field">
+                        <span class="agent-field-label">Workflow ID</span>
+                        <span class="agent-field-value">{wf_val}</span>
+                    </div>
+                    <div class="agent-field">
+                        <span class="agent-field-label">Agent Name</span>
+                        <span class="agent-field-value">{name_val}</span>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem">{link_html}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    # ── Extra CSS for read-only field rows ────────────────────────────────────
+    st.markdown(
+        f"""
+        <style>
+        .agent-field-row {{
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }}
+        .agent-field {{
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }}
+        .agent-field-label {{
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: {t3};
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }}
+        .agent-field-value {{
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: {t1};
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ── Render the three read-only cards ─────────────────────────────────────
+    _agent_card_readonly("🔍", "Expectation Agent", "s_exp_workflow_id", "s_exp_agent_name", "s_exp_agent_link")
+    _agent_card_readonly("🏆", "Scoring Agent",     "s_scr_workflow_id", "s_scr_agent_name", "s_scr_agent_link")
+    _agent_card_readonly("📊", "Summary Agent",     "s_sum_workflow_id", "s_sum_agent_name", "s_sum_agent_link")
+
+    # ── Edit form (collapsed by default under an expander) ───────────────────
+    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+    with st.expander("✏️ Edit Settings", expanded=False):
+        with st.form("settings_edit_form"):
+            st.markdown("**Expectation Agent**")
+            c1, c2 = st.columns([1, 2])
+            exp_wf   = c1.text_input("Workflow ID",  value=st.session_state.get("s_exp_workflow_id", ""), key="edit_exp_wf")
+            exp_name = c2.text_input("Agent Name",   value=st.session_state.get("s_exp_agent_name", ""), key="edit_exp_name")
+            exp_link = st.text_input("Agent Link",   value=st.session_state.get("s_exp_agent_link", ""), key="edit_exp_link", placeholder="https://...")
+
+            st.markdown("**Scoring Agent**")
+            c3, c4 = st.columns([1, 2])
+            scr_wf   = c3.text_input("Workflow ID",  value=st.session_state.get("s_scr_workflow_id", ""), key="edit_scr_wf")
+            scr_name = c4.text_input("Agent Name",   value=st.session_state.get("s_scr_agent_name", ""), key="edit_scr_name")
+            scr_link = st.text_input("Agent Link",   value=st.session_state.get("s_scr_agent_link", ""), key="edit_scr_link", placeholder="https://...")
+
+            st.markdown("**Summary Agent**")
+            c5, c6 = st.columns([1, 2])
+            sum_wf   = c5.text_input("Workflow ID",  value=st.session_state.get("s_sum_workflow_id", ""), key="edit_sum_wf")
+            sum_name = c6.text_input("Agent Name",   value=st.session_state.get("s_sum_agent_name", ""), key="edit_sum_name")
+            sum_link = st.text_input("Agent Link",   value=st.session_state.get("s_sum_agent_link", ""), key="edit_sum_link", placeholder="https://...")
+
+            saved = st.form_submit_button("💾 Save", type="primary")
+
+        if saved:
+            st.session_state["s_exp_workflow_id"]  = exp_wf.strip()
+            st.session_state["s_exp_agent_name"]   = exp_name.strip()
+            st.session_state["s_exp_agent_link"]   = exp_link.strip()
+            st.session_state["s_scr_workflow_id"]  = scr_wf.strip()
+            st.session_state["s_scr_agent_name"]   = scr_name.strip()
+            st.session_state["s_scr_agent_link"]   = scr_link.strip()
+            st.session_state["s_sum_workflow_id"]  = sum_wf.strip()
+            st.session_state["s_sum_agent_name"]   = sum_name.strip()
+            st.session_state["s_sum_agent_link"]   = sum_link.strip()
+            if exp_wf.strip():  _cfg.EXPECTATION_PIPELINE_ID   = exp_wf.strip()
+            if exp_name.strip(): _cfg.EXPECTATION_WORKFLOW_NAME = exp_name.strip()
+            if scr_wf.strip():  _cfg.SCORING_PIPELINE_ID       = scr_wf.strip()
+            if scr_name.strip(): _cfg.SCORING_WORKFLOW_NAME     = scr_name.strip()
+            if sum_wf.strip():  _cfg.SUMMARY_PIPELINE_ID       = sum_wf.strip()
+            if sum_name.strip(): _cfg.SUMMARY_WORKFLOW_NAME     = sum_name.strip()
+            st.success("✅ Saved! Cards above will update on next rerun.")
+            st.rerun()
+
+
+
 def _transfer_results_if_ready():
     holder = st.session_state.get("_results_holder", [])
     if holder and st.session_state.status_dict.get("_done"):
         st.session_state.results = list(holder)
-    cov = st.session_state.status_dict.get("_coverage_result")
+    cov = st.session_state.status_dict.get("_expectation_result")
     if cov:
-        st.session_state.coverage_result = cov
+        st.session_state.expectation_result = cov
     summ = st.session_state.status_dict.get("_summary_result")
     if summ:
         st.session_state.summary_result = summ
@@ -1018,6 +1258,8 @@ elif _page == "running":
     page_running()
 elif _page == "results":
     page_results()
+elif _page == "settings":
+    page_settings()
 else:
     st.session_state.page = "upload"
     st.rerun()
